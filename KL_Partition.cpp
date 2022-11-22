@@ -106,8 +106,6 @@ vector<Node> readFile(ifstream &file)
         Node dummyNode;
 
         dummyNode.node = totalNumNodesRead + 1;
-        dummyNode.internalCost = 0;
-        dummyNode.externalCost = 0;
         
         nodes.push_back(dummyNode);
     }
@@ -156,7 +154,7 @@ bool verifyData(vector<Node>& allNodes)
 // calculate internal cost, external cost, and d for each node
 // calculate cost of initial partition
 // output: array of two vectors containing the node designators of the nodes in the initial p1 and p2 partitions
-vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
+vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePairs, int *cost)
 {
     // array of vectors to contain data about which nodes are in each partition
     static vector<int> partitions[2];
@@ -172,6 +170,8 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
     int internalEdgeCount2 = 0;
     // external edge count (p1 and p2 should be equal)
     int externalEdgeCount = 0;
+    // variable for the number of connections between nodes a & b
+    int Cab = 0;
 
     // set total number of nodes (including dummy) and n/2
     totalNumNodes = allNodes.size() - 1;
@@ -319,13 +319,61 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
     cout << "total number of edges counted is " << edgeCount << endl;
     cout << "\n";
 
+    //calculate initial gain for each node pair
+    for (int i = 1; i <= partitionOneSize; i++)
+    {
+        for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
+        {
+            NodePair currentNodePair;
+
+            currentNodePair.p1Node = allNodes[i].node;
+            currentNodePair.p2Node = allNodes[j].node;
+
+            for (int k = 0; k < allNodes[i].adjacent.size(); k++)
+            {
+                if (allNodes[j].node == allNodes[i].adjacent[k])
+                {
+                    Cab = 1;
+                }
+            }
+            
+            currentNodePair.gain = allNodes[i].d + allNodes[j].d - (2 * Cab);
+
+            nodePairs.push_back(currentNodePair);
+        }
+    }
+
+    cout << "there should be " << ((n/2) * (n/2)) << " node pairs." << endl;
+    cout << "\n";
+    cout << "there are " << nodePairs.size() << " node pairs." << endl;
+    cout << "\n";
+
+    vector<int> gains;
+    int maxGain;
+
+    cout << "the gains are ";
+    for(int i = 0; i < nodePairs.size(); i++)
+    {
+        cout << nodePairs[i].gain << " ";
+        gains.push_back(nodePairs[i].gain);
+    }
+    cout << endl;
+    cout << "\n";
+
+    maxGain = *max_element(gains.begin(), gains.end());
+
+    cout << "the maximum gain is " << maxGain << endl;
+    cout << "\n";
+
     return partitions;
 }
 
+/*
 vector<Node> KLalgorithm()
 {
-    // stub code
+    
 }
+*/
 
 // input:
 // print out iteration summary in the following format:
@@ -368,6 +416,7 @@ void printResults(int iteration, vector<int> &p1, vector<int> &p2, int cost, boo
 int main(int argc, char **argv)
 {
     vector<Node> nodes;
+    vector<NodePair> exchangeableNodes;
     vector<int> *partitions;
 
     ifstream fileName(argv[1]);
@@ -423,7 +472,7 @@ int main(int argc, char **argv)
 
     int cost = 0;
 
-    partitions = initialPartition(nodes, &cost);
+    partitions = initialPartition(nodes, exchangeableNodes, &cost);
 
     printResults(1, partitions[0], partitions[1], cost);
 
