@@ -12,6 +12,7 @@
     description:
 */
 
+
 #include <bits/stdc++.h>
 #include <iostream>
 #include <sstream>
@@ -32,9 +33,15 @@ struct Node {
     vector<int> adjacent;
     int numAdjNodes = 0;
     bool swapped = 0;
-    int internalCost;
-    int externalCost;
-    int d;
+    int internalCost = 0;
+    int externalCost = 0;
+    int d = 0;
+};
+
+struct NodePair {
+    int p1Node = 0;
+    int p2Node = 0;
+    int gain = 0;
 };
 
 // function to read file and return a vector of node structures
@@ -135,11 +142,15 @@ bool verifyData(vector<Node>& allNodes)
     return 1;
 }
 
-vector<int>* initialPartition(vector<Node>& allNodes)
+vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
 {
     static vector<int> partitions[2];
-    int totalNumNodes;
-    int partitionOneSize;
+    int totalNumNodes = 0;
+    int partitionOneSize = 0;
+    int edgeCount = 0;
+    int internalEdgeCount1 = 0;
+    int internalEdgeCount2 = 0;
+    int externalEdgeCount = 0;
 
     totalNumNodes = allNodes.size() - 1;
     partitionOneSize = totalNumNodes/2;
@@ -157,8 +168,132 @@ vector<int>* initialPartition(vector<Node>& allNodes)
     sort(partitions[0].begin(), partitions[0].end());
     sort(partitions[1].begin(), partitions[1].end());
 
-    return partitions;
+    // calculate external cost for nodes in partition 1
+    for (int i = 1; i <= partitionOneSize; i++)
+    {
+        for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
+        {
+            for (int k = 0; k < allNodes[j].adjacent.size(); k++)
+            {
+                cout << "(external) adjacent node is " << allNodes[j].adjacent[k] << endl;
 
+                if (allNodes[i].node == allNodes[j].adjacent[k])
+                {
+                    allNodes[i].externalCost += 1;
+
+                    cout << "i is " << i << " j is " << j << endl;
+
+                    cout << "external cost of node " << allNodes[i].node << " is now " << allNodes[i].externalCost << endl;
+
+                    externalEdgeCount++;
+                }
+            }
+        }
+    }
+
+    // calculate internal cost for nodes in partition 2
+    for (int i = 1; i <= partitionOneSize; i++)
+    {
+        for (int j = 1; j <= partitionOneSize; j++)
+        {
+            for (int k = 0; k < allNodes[j].adjacent.size(); k++)
+            {
+                cout << "(internal) adjacent node is " << allNodes[j].adjacent[k] << endl;
+
+                if ((allNodes[i].node == allNodes[j].adjacent[k]) && (j != i))
+                {
+                    allNodes[i].internalCost += 1;
+
+                    cout << "i is " << i << " j is " << j << endl;
+
+                    cout << "internal cost of node " << allNodes[i].node << " is now " << allNodes[i].internalCost << endl;
+
+                    internalEdgeCount1++;
+                }
+            }
+        }
+    }
+
+    internalEdgeCount1 = internalEdgeCount1 / 2;
+
+    // calculate external cost for nodes in partition 2
+    for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
+    {
+        for (int j = 1; j <= partitionOneSize; j++)
+        {
+            for (int k = 0; k < allNodes[j].adjacent.size(); k++)
+            {
+                cout << "(external) adjacent node is " << allNodes[j].adjacent[k] << endl;
+                
+                if (allNodes[i].node == allNodes[j].adjacent[k])
+                {
+                    allNodes[i].externalCost += 1;
+
+                    cout << "i is " << i << " j is " << j << endl;
+
+                    cout << "external cost of node " << allNodes[i].node << " is now " << allNodes[i].externalCost << endl;
+                }
+            }
+        }
+    }
+
+    // calculate internal cost for nodes in partition 2
+    for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
+    {
+        for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
+        {
+            for (int k = 0; k < allNodes[j].adjacent.size(); k++)
+            {
+                cout << "(internal) adjacent node is " << allNodes[j].adjacent[k] << endl;
+
+                if ((allNodes[i].node == allNodes[j].adjacent[k]) && (j != i))
+                {
+                    allNodes[i].internalCost += 1;
+
+                    cout << "i is " << i << " j is " << j << endl;
+
+                    cout << "internal cost of node " << allNodes[i].node << " is now " << allNodes[i].internalCost << endl;
+
+                    internalEdgeCount2++;
+                }
+            }
+        }
+    }
+
+    internalEdgeCount2 = internalEdgeCount2 / 2;
+
+    // update d value for all nodes
+    for (int i = 1; i <= totalNumNodes; i++)
+    {
+        allNodes[i].d = allNodes[i].externalCost - allNodes[i].internalCost;
+        //cost += allNodes[i].externalCost;
+    }
+
+
+    // calculate cost of first partition
+    for(int i = 1; i <= partitionOneSize; i++)
+    {
+        *cost += allNodes[i].externalCost;
+    }
+
+    int costP2 = 0;
+    for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
+    {
+        costP2 += allNodes[i].externalCost;
+    }
+
+    cout << "\n";
+    cout << "external cost of p1 is " << *cost << endl;
+    cout << "\n";
+
+    cout << "external cost of p2 is " << costP2 << endl;
+    cout << "\n";
+
+    edgeCount = externalEdgeCount + internalEdgeCount1 + internalEdgeCount2;
+    cout << "total number of edges counted is " << edgeCount << endl;
+    cout << "\n";
+
+    return partitions;
 }
 
 /*
@@ -200,10 +335,9 @@ void printResults(int iteration, vector<int> &p1, vector<int> &p2, int cost, boo
     {
         cout << "cost of the partition: unknown" << endl;
         cout << "\n";
-    }
-    
-    
+    }   
 }
+
 
 int main(int argc, char **argv)
 {
@@ -261,9 +395,11 @@ int main(int argc, char **argv)
     cout << "a valid graph has been obtained from the file. data processing will begin now." << endl;
     cout << "\n";
 
-    partitions = initialPartition(nodes);
+    int cost = 0;
 
-    printResults(1, partitions[0], partitions[1], 0, 1);
+    partitions = initialPartition(nodes, &cost);
+
+    printResults(1, partitions[0], partitions[1], cost);
 
 
     return 0;
