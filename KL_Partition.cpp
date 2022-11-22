@@ -22,6 +22,7 @@
 using namespace std;
 
 // declare variables for total number of nodes and number of edges
+// don't be lazy. clean up and make pass by reference
 int n = 0;
 int e = 0;
 int totalNumNodesRead = 0;
@@ -38,13 +39,16 @@ struct Node {
     int d = 0;
 };
 
+// structure to contain gain data for each pair of possible node exchanges
 struct NodePair {
     int p1Node = 0;
     int p2Node = 0;
     int gain = 0;
 };
 
-// function to read file and return a vector of node structures
+// input:
+// read file and return a vector of node structures
+// output:
 vector<Node> readFile(ifstream &file)
 {
     // declare vector of nodes
@@ -96,6 +100,7 @@ vector<Node> readFile(ifstream &file)
     // correct for first line
     totalNumAdjNodesRead -= 2;
 
+    // if the number of nodes is not even, create a dummy node
     if ((totalNumNodesRead % 2) != 0)
     {
         Node dummyNode;
@@ -111,15 +116,19 @@ vector<Node> readFile(ifstream &file)
     return nodes;
 }
 
+// input:
 // function to verify the data read from the file is valid
 // there must be nodes equal to n
 // there must be adjacent nodes equal to 2e
+// output:
 bool verifyData(vector<Node>& allNodes)
 {
+    // inform user of number of nodes stated/read and number of edges stated/read
     cout << "the specified number of nodes (n) is " << n << ". the specified number of edges (e) is " << e << "." << endl;
     cout << "the total number of nodes read is " << totalNumNodesRead << ". the total number of adjacent nodes read is " << totalNumAdjNodesRead << "." << endl;
     cout << "\n";
 
+    // error check for: incorrect first line data, incorrect number of adjacent nodes read, and incorrect number of nodes read
     if (allNodes[0].numAdjNodes != 2)
     {
         cout << "this file does not have valid graph data. the file must include two numbers on the first line, number of nodes, and number of edges, respectively. please try another file." << endl;
@@ -142,19 +151,33 @@ bool verifyData(vector<Node>& allNodes)
     return 1;
 }
 
+// input: reference to vector of node structures and pointer to int for cost
+// create initial partition of (1,...,n/2) and ((n/2)+1,...,n) nodes
+// calculate internal cost, external cost, and d for each node
+// calculate cost of initial partition
+// output: array of two vectors containing the node designators of the nodes in the initial p1 and p2 partitions
 vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
 {
+    // array of vectors to contain data about which nodes are in each partition
     static vector<int> partitions[2];
+    // total number of nodes + dummy node (if there is one)
     int totalNumNodes = 0;
+    // n/2
     int partitionOneSize = 0;
+    // total number of edges counted while calculating cost -- for parity
     int edgeCount = 0;
+    // p1 internal edge count
     int internalEdgeCount1 = 0;
+    // p2 internal edge count
     int internalEdgeCount2 = 0;
+    // external edge count (p1 and p2 should be equal)
     int externalEdgeCount = 0;
 
+    // set total number of nodes (including dummy) and n/2
     totalNumNodes = allNodes.size() - 1;
     partitionOneSize = totalNumNodes/2;
 
+    // create partitions
     for (int i = 1; i <= partitionOneSize; i++)
     {
         partitions[0].push_back(allNodes[i].node);
@@ -165,6 +188,7 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
         partitions[1].push_back(allNodes[i].node);
     }
 
+    // sort partitions
     sort(partitions[0].begin(), partitions[0].end());
     sort(partitions[1].begin(), partitions[1].end());
 
@@ -191,7 +215,7 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
         }
     }
 
-    // calculate internal cost for nodes in partition 2
+    // calculate internal cost for nodes in partition 1
     for (int i = 1; i <= partitionOneSize; i++)
     {
         for (int j = 1; j <= partitionOneSize; j++)
@@ -214,6 +238,7 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
         }
     }
 
+    // one edge per two nodes counted
     internalEdgeCount1 = internalEdgeCount1 / 2;
 
     // calculate external cost for nodes in partition 2
@@ -260,15 +285,14 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
         }
     }
 
+    // one edge per two nodes counted
     internalEdgeCount2 = internalEdgeCount2 / 2;
 
     // update d value for all nodes
     for (int i = 1; i <= totalNumNodes; i++)
     {
         allNodes[i].d = allNodes[i].externalCost - allNodes[i].internalCost;
-        //cost += allNodes[i].externalCost;
     }
-
 
     // calculate cost of first partition
     for(int i = 1; i <= partitionOneSize; i++)
@@ -276,12 +300,14 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
         *cost += allNodes[i].externalCost;
     }
 
+    // calculate cost of second partition for parity
     int costP2 = 0;
     for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
     {
         costP2 += allNodes[i].externalCost;
     }
 
+    // print for error checking
     cout << "\n";
     cout << "external cost of p1 is " << *cost << endl;
     cout << "\n";
@@ -296,18 +322,18 @@ vector<int>* initialPartition(vector<Node>& allNodes, int *cost)
     return partitions;
 }
 
-/*
 vector<Node> KLalgorithm()
 {
     // stub code
 }
-*/
 
+// input:
 // print out iteration summary in the following format:
 // iteration #
 // partition 1: list of nodes in increasing order
 // partition 2: list of nodes in increasing order
-// cost of the partition = cost calculated by kl algorithm
+// cost of the partition: calculated by kl algorithm
+// output:
 void printResults(int iteration, vector<int> &p1, vector<int> &p2, int cost, bool isFirstIteration = 0)
 {
     cout << "iteration " << iteration << endl;
