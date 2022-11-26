@@ -154,7 +154,7 @@ bool verifyData(vector<Node>& allNodes)
 // calculate internal cost, external cost, and d for each node
 // calculate cost of initial partition
 // output: array of two vectors containing the node designators of the nodes in the initial p1 and p2 partitions
-vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePairs, int *cost)
+vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePairs, int *cost, int *maxGain, int *p1NodeSwap, int *p2NodeSwap)
 {
     // array of vectors to contain data about which nodes are in each partition
     static vector<int> partitions[2];
@@ -199,15 +199,15 @@ vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePair
         {
             for (int k = 0; k < allNodes[j].adjacent.size(); k++)
             {
-                cout << "(external) adjacent node is " << allNodes[j].adjacent[k] << endl;
+                // cout << "(external) adjacent node is " << allNodes[j].adjacent[k] << endl;
 
                 if (allNodes[i].node == allNodes[j].adjacent[k])
                 {
                     allNodes[i].externalCost += 1;
 
-                    cout << "i is " << i << " j is " << j << endl;
+                    // cout << "i is " << i << " j is " << j << endl;
 
-                    cout << "external cost of node " << allNodes[i].node << " is now " << allNodes[i].externalCost << endl;
+                    // cout << "external cost of node " << allNodes[i].node << " is now " << allNodes[i].externalCost << endl;
 
                     externalEdgeCount++;
                 }
@@ -222,15 +222,15 @@ vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePair
         {
             for (int k = 0; k < allNodes[j].adjacent.size(); k++)
             {
-                cout << "(internal) adjacent node is " << allNodes[j].adjacent[k] << endl;
+                // cout << "(internal) adjacent node is " << allNodes[j].adjacent[k] << endl;
 
                 if ((allNodes[i].node == allNodes[j].adjacent[k]) && (j != i))
                 {
                     allNodes[i].internalCost += 1;
 
-                    cout << "i is " << i << " j is " << j << endl;
+                    // cout << "i is " << i << " j is " << j << endl;
 
-                    cout << "internal cost of node " << allNodes[i].node << " is now " << allNodes[i].internalCost << endl;
+                    // cout << "internal cost of node " << allNodes[i].node << " is now " << allNodes[i].internalCost << endl;
 
                     internalEdgeCount1++;
                 }
@@ -248,15 +248,15 @@ vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePair
         {
             for (int k = 0; k < allNodes[j].adjacent.size(); k++)
             {
-                cout << "(external) adjacent node is " << allNodes[j].adjacent[k] << endl;
+                // cout << "(external) adjacent node is " << allNodes[j].adjacent[k] << endl;
                 
                 if (allNodes[i].node == allNodes[j].adjacent[k])
                 {
                     allNodes[i].externalCost += 1;
 
-                    cout << "i is " << i << " j is " << j << endl;
+                    // cout << "i is " << i << " j is " << j << endl;
 
-                    cout << "external cost of node " << allNodes[i].node << " is now " << allNodes[i].externalCost << endl;
+                    // cout << "external cost of node " << allNodes[i].node << " is now " << allNodes[i].externalCost << endl;
                 }
             }
         }
@@ -269,15 +269,15 @@ vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePair
         {
             for (int k = 0; k < allNodes[j].adjacent.size(); k++)
             {
-                cout << "(internal) adjacent node is " << allNodes[j].adjacent[k] << endl;
+                // cout << "(internal) adjacent node is " << allNodes[j].adjacent[k] << endl;
 
                 if ((allNodes[i].node == allNodes[j].adjacent[k]) && (j != i))
                 {
                     allNodes[i].internalCost += 1;
 
-                    cout << "i is " << i << " j is " << j << endl;
+                    // cout << "i is " << i << " j is " << j << endl;
 
-                    cout << "internal cost of node " << allNodes[i].node << " is now " << allNodes[i].internalCost << endl;
+                    // cout << "internal cost of node " << allNodes[i].node << " is now " << allNodes[i].internalCost << endl;
 
                     internalEdgeCount2++;
                 }
@@ -308,7 +308,7 @@ vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePair
     }
 
     // print for error checking
-    cout << "\n";
+    // cout << "\n";
     cout << "external cost of p1 is " << *cost << endl;
     cout << "\n";
 
@@ -319,6 +319,7 @@ vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePair
     cout << "total number of edges counted is " << edgeCount << endl;
     cout << "\n";
 
+    
     //calculate initial gain for each node pair
     for (int i = 1; i <= partitionOneSize; i++)
     {
@@ -339,30 +340,55 @@ vector<int>* initialPartition(vector<Node>& allNodes, vector<NodePair>& nodePair
             
             currentNodePair.gain = allNodes[i].d + allNodes[j].d - (2 * Cab);
 
+            // initialize max gain
+            if ((i == 1) && (j == (partitionOneSize + 1)))
+            {
+                *maxGain = currentNodePair.gain;
+                *p1NodeSwap = allNodes[i].node;
+                *p2NodeSwap = allNodes[j].node;
+            }
+            // check if the current gain is larger than the max gain, and update if so
+            else
+            {
+                if (currentNodePair.gain > *maxGain)
+                {
+                    *maxGain = currentNodePair.gain;
+                    *p1NodeSwap = allNodes[i].node;
+                    *p2NodeSwap = allNodes[j].node;
+                }
+            }
+
             nodePairs.push_back(currentNodePair);
+
+            // add code to keep a running total of the max gain, and node pair that corresponds to it
         }
     }
 
+    // parity check
     cout << "there should be " << ((n/2) * (n/2)) << " node pairs." << endl;
     cout << "\n";
     cout << "there are " << nodePairs.size() << " node pairs." << endl;
     cout << "\n";
 
+    // temp max gain code to finish checkpoint. move in to original loop which calculates gain
+
     vector<int> gains;
-    int maxGain;
+    int maxGainCheck;
 
     cout << "the gains are ";
+
     for(int i = 0; i < nodePairs.size(); i++)
     {
-        cout << nodePairs[i].gain << " ";
+        cout << (i + 1) << ": " << nodePairs[i].gain << " ";
         gains.push_back(nodePairs[i].gain);
     }
+    
     cout << endl;
     cout << "\n";
 
-    maxGain = *max_element(gains.begin(), gains.end());
+    maxGainCheck = *max_element(gains.begin(), gains.end());
 
-    cout << "the maximum gain is " << maxGain << endl;
+    cout << "the maximum gain is " << maxGainCheck << endl;
     cout << "\n";
 
     return partitions;
@@ -436,9 +462,9 @@ int main(int argc, char **argv)
         while (fileName.is_open() != 1)
         {
             cout << "specified file could not be opened. please provide a valid file name." << endl;
-            cout << "\n";
             cin >> newFileName;
             fileName.open(newFileName.c_str());
+            cout << "\n";
         }
 
         cout << "file was opened successfully!" << endl;
@@ -454,9 +480,9 @@ int main(int argc, char **argv)
         while (verifiedFileName.is_open() != 1)
         {
             cout << "specified file did not provide valid data. please provide a valid file." << endl;
-            cout << "\n";
             cin >> newFileName2;
             verifiedFileName.open(newFileName2.c_str());
+            cout << "\n";
         }
 
         cout << "file was opened successfully!" << endl;
@@ -471,11 +497,22 @@ int main(int argc, char **argv)
     cout << "\n";
 
     int cost = 0;
+    int maxGain;
+    int p1NodeSwap;
+    int p2NodeSwap;
 
-    partitions = initialPartition(nodes, exchangeableNodes, &cost);
+    partitions = initialPartition(nodes, exchangeableNodes, &cost, &maxGain, &p1NodeSwap, &p2NodeSwap);
 
     printResults(1, partitions[0], partitions[1], cost);
 
+    cout << "the maximum gain is " << maxGain << endl;
+    cout << "\n";
+
+    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
+    cout << "\n";
+
+    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
+    cout << "\n";
 
     return 0;
 }
