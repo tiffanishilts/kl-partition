@@ -21,13 +21,6 @@
 #include <vector>
 using namespace std;
 
-// declare variables for total number of nodes and number of edges
-// don't be lazy. clean up and make pass by reference
-int n = 0;
-int e = 0;
-int totalNumNodesRead = 0;
-int totalNumAdjNodesRead = 0;
-
 // structure for each node which holds it's adjacent nodes
 struct Node {
     int node;
@@ -49,7 +42,7 @@ struct NodePair {
 // input:
 // read file and return a vector of node structures
 // output:
-vector<Node> readFile(ifstream &file)
+vector<Node> readFile(ifstream &file, int *n, int *e, int *totalNumNodesRead, int *totalNumAdjNodesRead)
 {
     // declare vector of nodes
     static vector<Node> nodes;
@@ -81,7 +74,7 @@ vector<Node> readFile(ifstream &file)
         currentNode.numAdjNodes = currentNode.adjacent.size();
 
         // update running total of adjacent nodes in file to ensure the data is valid
-        totalNumAdjNodesRead += currentNode.numAdjNodes;
+        *totalNumAdjNodesRead += currentNode.numAdjNodes;
 
         // push current node structure into node vector
         nodes.push_back(currentNode);
@@ -91,21 +84,21 @@ vector<Node> readFile(ifstream &file)
     }
 
     // assign number of nodes and number of edges from the first line of the file to their respective variables
-    n = nodes[0].adjacent[0];
-    e = nodes[0].adjacent[1];
+    *n = nodes[0].adjacent[0];
+    *e = nodes[0].adjacent[1];
 
     // update total nodes read from file to ensure data is valid
-    totalNumNodesRead = nodes.size() - 1;
+    *totalNumNodesRead = nodes.size() - 1;
 
     // correct for first line
-    totalNumAdjNodesRead -= 2;
+    *totalNumAdjNodesRead -= 2;
 
     // if the number of nodes is not even, create a dummy node
-    if ((totalNumNodesRead % 2) != 0)
+    if ((*totalNumNodesRead % 2) != 0)
     {
         Node dummyNode;
 
-        dummyNode.node = totalNumNodesRead + 1;
+        dummyNode.node = *totalNumNodesRead + 1;
         
         nodes.push_back(dummyNode);
     }
@@ -119,7 +112,7 @@ vector<Node> readFile(ifstream &file)
 // there must be nodes equal to n
 // there must be adjacent nodes equal to 2e
 // output:
-bool verifyData(vector<Node>& nodes)
+bool verifyData(vector<Node>& nodes, int n, int e, int totalNumNodesRead, int totalNumAdjNodesRead)
 {
     // inform user of number of nodes stated/read and number of edges stated/read
     cout << "the specified number of nodes (n) is " << n << ". the specified number of edges (e) is " << e << "." << endl;
@@ -182,7 +175,7 @@ vector<int>* swapNodes(vector<int> *partitions, vector<NodePair>& nodePairs, int
 // calculate internal cost, external cost, and d for each node
 // calculate cost of initial partition
 // output: array of two vectors containing the node designators of the nodes in the initial p1 and p2 partitions
-vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, int *cost, int *maxGain, int *p1NodeSwap, int *p2NodeSwap)
+vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, int *cost, int *maxGain, int *p1NodeSwap, int *p2NodeSwap, int n)
 {
     // array of vectors to contain data about which nodes are in each partition
     static vector<int> partitions[2];
@@ -473,13 +466,17 @@ int main(int argc, char **argv)
     vector<NodePair> exchangeableNodes;
     vector<int> *partitions;
     ifstream verifiedFileName;
-    string newFileName2;
+    string newFileName;
     int cost = 0;
     int maxGain;
     int p1NodeSwap;
     int p2NodeSwap;
     int iteration = 1;
-
+    // declare variables for total number of nodes and number of edges
+    int n = 0;
+    int e = 0;
+    int totalNumNodesRead = 0;
+    int totalNumAdjNodesRead = 0;
 
     ifstream fileName(argv[1]);
 
@@ -489,12 +486,10 @@ int main(int argc, char **argv)
     {
         cout << "file was opened successfully!" << endl;
         cout << "\n";
-        nodes = readFile(fileName);
+        nodes = readFile(fileName, &n, &e, &totalNumNodesRead, &totalNumAdjNodesRead);
     }
     else
     {
-        string newFileName;
-
         while (fileName.is_open() != 1)
         {
             cout << "specified file could not be opened. please provide a valid file name." << endl;
@@ -505,22 +500,22 @@ int main(int argc, char **argv)
 
         cout << "file was opened successfully!" << endl;
         cout << "\n";
-        nodes = readFile(fileName);
+        nodes = readFile(fileName, &n, &e, &totalNumNodesRead, &totalNumAdjNodesRead);
     }
 
-    while (verifyData(nodes) != 1)
+    while (verifyData(nodes, n, e, totalNumNodesRead, totalNumAdjNodesRead) != 1)
     {
         while (verifiedFileName.is_open() != 1)
         {
             cout << "specified file did not provide valid data. please provide a valid file." << endl;
-            cin >> newFileName2;
-            verifiedFileName.open(newFileName2.c_str());
+            cin >> newFileName;
+            verifiedFileName.open(newFileName.c_str());
             cout << "\n";
         }
 
         cout << "file was opened successfully!" << endl;
         cout << "\n";
-        nodes = readFile(verifiedFileName);
+        nodes = readFile(verifiedFileName, &n, &e, &totalNumNodesRead, &totalNumAdjNodesRead);
     }
 
     cout << "data was verified successfully!" << endl;
@@ -529,7 +524,7 @@ int main(int argc, char **argv)
     cout << "a valid graph has been obtained from the file. data processing will begin now." << endl;
     cout << "\n";
 
-    partitions = initialPartition(nodes, exchangeableNodes, &cost, &maxGain, &p1NodeSwap, &p2NodeSwap);
+    partitions = initialPartition(nodes, exchangeableNodes, &cost, &maxGain, &p1NodeSwap, &p2NodeSwap, n);
 
     printResults(iteration, partitions[0], partitions[1], cost);
 
