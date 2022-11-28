@@ -14,6 +14,7 @@
 
 
 #include <bits/stdc++.h>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -40,6 +41,7 @@ struct Node {
     // connection between the last swapped nodes and nodes in partition 2
     int Cyb;
     int Cya;
+    int currentPartition;
 };
 
 // structure to contain gain data for each pair of possible node exchanges
@@ -190,11 +192,13 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     for (int i = 1; i <= partitionOneSize; i++)
     {
         partitions[0].push_back(nodes[i].node);
+        nodes[i].currentPartition = 1;
     }
 
     for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
     {
         partitions[1].push_back(nodes[i].node);
+        nodes[i].currentPartition = 2;
     }
 
     // sort partitions
@@ -401,13 +405,16 @@ vector<int> *swapNodes(vector<int> *partitions, vector<NodePair> &nodePairs, vec
     sort(partitions[1].begin(), partitions[1].end());
 
     // delete all possible node pairs that contain the nodes which were last swapped
-    for (int i = 0; i < nodePairs.size(); i++)
-    {
-        if ((p1Node == nodePairs[i].p1Node) || (p2Node == nodePairs[i].p2Node))
-        {
-            nodePairs.erase(nodePairs.begin() + i);
-        }
-    }
+    //for (int i = 0; i < nodePairs.size(); i++)
+    //{
+        //if ((p1Node == nodePairs[i].p1Node) || (p2Node == nodePairs[i].p2Node))
+        //{
+            //nodePairs.erase(nodePairs.begin() + i);
+        //}
+    //}
+
+    // delete all node pairs to rebuild in gain function
+    nodePairs.clear();
 
     // move nodes to used node vector for second kl iteration
     Node tempNode1;
@@ -420,11 +427,13 @@ vector<int> *swapNodes(vector<int> *partitions, vector<NodePair> &nodePairs, vec
         if (nodes[i].node == p1Node)
         {
             tempNode1 = nodes[i];
+            tempNode1.currentPartition = 2;
             usedNode1Index = i;
         }
         else if (nodes[i].node == p2Node)
         {
             tempNode2 = nodes[i];
+            tempNode2.currentPartition = 1;
             usedNode2Index = i;
         }
     }
@@ -518,20 +527,70 @@ void updateD(vector<Node> &nodes, int p1Node, int p2Node, vector<int> &p1, vecto
 // input:
 // functionality:
 // output:
-void updateGain(vector<NodePair> &nodePairs, vector<Node> &nodes)
+void updateGain(vector<NodePair> &nodePairs, vector<Node> &nodes, int *maxGain, int *p1NodeSwap, int *p2NodeSwap)
 {
     // TASK LIST
-    // - add variable to designate partition in the node struct
-    // - initialize it in initial partition function
-    // - update it in the swap nodes function
-    // - change swap nodes to clear nodePairs vector
-    // - rebuild nodePairs vector with new pairs/gains
+    // - add variable to designate partition in the node struct -- x
+    // - initialize it in initial partition function -- x
+    // - update it in the swap nodes function -- x
+    // - change swap nodes to clear nodePairs vector -- x
+    // - rebuild nodePairs vector with new pairs/gains -- x
     // -- using 2 layer nested loop
     // --- first loop iterates over all nodes and 
     // --- checks if partition is equal to 1
     // --- if it is, second loop is entered which iterates
     // --- over all the nodes checking if they belong to
     // --- partition 2. if they do, a new nodePair struct is created
+
+    maxGain = NULL;
+
+    for(int i = 1; i <= (nodes.size() - 1); i++)
+    {
+        if (nodes[i].currentPartition == 1)
+        {
+            for (int j = 1; j <= (nodes.size() - 1); j++)
+            {
+                if (nodes[j].currentPartition == 2)
+                {
+                    NodePair currentNodePair;
+
+                    currentNodePair.p1Node = nodes[i].node;
+                    currentNodePair.p2Node = nodes[j].node;
+                    currentNodePair.Cab = 0;
+
+                    for (int k = 0; k < nodes[i].adjacent.size(); k++)
+                    {
+                        if (nodes[j].node == nodes[i].adjacent[k])
+                        {
+                            currentNodePair.Cab = 1;
+                        }
+                    }
+
+                    currentNodePair.gain = nodes[i].d + nodes[j].d - (2 * currentNodePair.Cab);
+
+                    // initialize max gain
+                    if (maxGain == NULL)
+                    {
+                        *maxGain = currentNodePair.gain;
+                        *p1NodeSwap = nodes[i].node;
+                        *p2NodeSwap = nodes[j].node;
+                    }
+                    // check if the current gain is larger than the max gain, and update if so
+                    else
+                    {
+                        if (currentNodePair.gain > *maxGain)
+                        {
+                            *maxGain = currentNodePair.gain;
+                            *p1NodeSwap = nodes[i].node;
+                            *p2NodeSwap = nodes[j].node;
+                        }
+                    }
+
+                    nodePairs.push_back(currentNodePair);
+                }
+            }
+        }
+    }
 }
 
 /*
