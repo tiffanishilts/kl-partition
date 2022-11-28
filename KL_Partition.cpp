@@ -25,19 +25,25 @@ using namespace std;
 struct Node {
     int node;
     vector<int> adjacent;
-    int numAdjNodes = 0;
-    bool swapped = 0;
-    int internalCost = 0;
-    int externalCost = 0;
-    int d = 0;
+    int numAdjNodes;
+    //bool swapped;
+    int internalCost;
+    int externalCost;
+    int d;
 };
 
 // structure to contain gain data for each pair of possible node exchanges
 struct NodePair {
-    int p1Node = 0;
-    int p2Node = 0;
-    int Cab = 0;
-    int gain = 0;
+    int p1Node;
+    int p2Node;
+    int Cab;
+    int gain;
+    // connections between the swapped nodes and their adjacent nodes in partition 1
+    int Cxa;
+    int Cxb;
+    // connections between the swapped nodes and their adjacent nodes in partition 2
+    int Cyb;
+    int Cya;
 };
 
 // input:
@@ -168,8 +174,6 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     int internalEdgeCount2 = 0;
     // external edge count (p1 and p2 should be equal)
     int externalEdgeCount = 0;
-    // variable for the number of connections between nodes a & b
-    int Cab = 0;
 
     // set total number of nodes (including dummy) and n/2
     totalNumNodes = nodes.size() - 1;
@@ -193,19 +197,15 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     // calculate external cost for nodes in partition 1
     for (int i = 1; i <= partitionOneSize; i++)
     {
+        nodes[i].externalCost = 0;
+
         for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
             {
-                // cout << "(external) adjacent node is " << nodes[j].adjacent[k] << endl;
-
                 if (nodes[i].node == nodes[j].adjacent[k])
                 {
                     nodes[i].externalCost += 1;
-
-                    // cout << "i is " << i << " j is " << j << endl;
-
-                    // cout << "external cost of node " << nodes[i].node << " is now " << nodes[i].externalCost << endl;
 
                     externalEdgeCount++;
                 }
@@ -216,19 +216,15 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     // calculate internal cost for nodes in partition 1
     for (int i = 1; i <= partitionOneSize; i++)
     {
+        nodes[i].internalCost = 0;
+
         for (int j = 1; j <= partitionOneSize; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
             {
-                // cout << "(internal) adjacent node is " << nodes[j].adjacent[k] << endl;
-
                 if ((nodes[i].node == nodes[j].adjacent[k]) && (j != i))
                 {
                     nodes[i].internalCost += 1;
-
-                    // cout << "i is " << i << " j is " << j << endl;
-
-                    // cout << "internal cost of node " << nodes[i].node << " is now " << nodes[i].internalCost << endl;
 
                     internalEdgeCount1++;
                 }
@@ -242,19 +238,15 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     // calculate external cost for nodes in partition 2
     for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
     {
+        nodes[i].externalCost = 0;
+
         for (int j = 1; j <= partitionOneSize; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
-            {
-                // cout << "(external) adjacent node is " << nodes[j].adjacent[k] << endl;
-                
+            {   
                 if (nodes[i].node == nodes[j].adjacent[k])
                 {
                     nodes[i].externalCost += 1;
-
-                    // cout << "i is " << i << " j is " << j << endl;
-
-                    // cout << "external cost of node " << nodes[i].node << " is now " << nodes[i].externalCost << endl;
                 }
             }
         }
@@ -263,19 +255,15 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     // calculate internal cost for nodes in partition 2
     for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
     {
+        nodes[i].internalCost = 0;
+
         for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
             {
-                // cout << "(internal) adjacent node is " << nodes[j].adjacent[k] << endl;
-
                 if ((nodes[i].node == nodes[j].adjacent[k]) && (j != i))
                 {
                     nodes[i].internalCost += 1;
-
-                    // cout << "i is " << i << " j is " << j << endl;
-
-                    // cout << "internal cost of node " << nodes[i].node << " is now " << nodes[i].internalCost << endl;
 
                     internalEdgeCount2++;
                 }
@@ -325,17 +313,17 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
 
             currentNodePair.p1Node = nodes[i].node;
             currentNodePair.p2Node = nodes[j].node;
+            currentNodePair.Cab = 0;
 
             for (int k = 0; k < nodes[i].adjacent.size(); k++)
             {
                 if (nodes[j].node == nodes[i].adjacent[k])
                 {
-                    Cab = 1;
                     currentNodePair.Cab = 1;
                 }
             }
-            
-            currentNodePair.gain = nodes[i].d + nodes[j].d - (2 * Cab);
+
+            currentNodePair.gain = nodes[currentNodePair.p1Node].d + nodes[currentNodePair.p2Node].d - (2 * currentNodePair.Cab);
 
             // initialize max gain
             if ((i == 1) && (j == (partitionOneSize + 1)))
@@ -396,8 +384,9 @@ void updateD(vector<Node>& nodes, int p1Node, int p2Node)
 {
     for (int i = 0; i < nodes[p1Node].adjacent.size(); i++)
     {
-        // nodes[nodes[p1Node].adjacent[i]].d = 
+        
     }
+
 }
 
 // input:
