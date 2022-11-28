@@ -23,27 +23,34 @@ using namespace std;
 
 // structure for each node which holds it's adjacent nodes
 struct Node {
+    // node designator
     int node;
+    // vector of adjacent nodes
     vector<int> adjacent;
+    // total number of adjacent nodes
     int numAdjNodes;
-    //bool swapped;
+    // initial costs
     int internalCost;
     int externalCost;
+    // d-value
     int d;
+    // connection between the last swapped nodes and nodes in partition 1
+    int Cxa;
+    int Cxb;
+    // connection between the last swapped nodes and nodes in partition 2
+    int Cyb;
+    int Cya;
 };
 
 // structure to contain gain data for each pair of possible node exchanges
 struct NodePair {
+    // node from each partition being compared
     int p1Node;
     int p2Node;
+    // connection between p1 & p2 node pair
     int Cab;
+    // current gain of swapping pair
     int gain;
-    // connections between the swapped nodes and their adjacent nodes in partition 1
-    int Cxa;
-    int Cxb;
-    // connections between the swapped nodes and their adjacent nodes in partition 2
-    int Cyb;
-    int Cya;
 };
 
 // input:
@@ -294,11 +301,11 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     }
 
     // print for error checking
-    //cout << "external cost of p1 is " << *initialCost << endl;
-    //cout << "\n";
+    cout << "external cost of p1 is " << *initialCost << endl;
+    cout << "\n";
 
-    //cout << "external cost of p2 is " << costP2 << endl;
-    //cout << "\n";
+    cout << "external cost of p2 is " << costP2 << endl;
+    cout << "\n";
 
     edgeCount = externalEdgeCount + internalEdgeCount1 + internalEdgeCount2;
     cout << "total number of edges counted is " << edgeCount << endl;
@@ -323,7 +330,7 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
                 }
             }
 
-            currentNodePair.gain = nodes[currentNodePair.p1Node].d + nodes[currentNodePair.p2Node].d - (2 * currentNodePair.Cab);
+            currentNodePair.gain = nodes[i].d + nodes[j].d - (2 * currentNodePair.Cab);
 
             // initialize max gain
             if ((i == 1) && (j == (partitionOneSize + 1)))
@@ -355,38 +362,26 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
 
     // temp max gain code to finish checkpoint. move in to original loop which calculates gain
 
-    //vector<int> gains;
-    //int maxGainCheck;
+    vector<int> gains;
+    int maxGainCheck;
 
-    //cout << "the gains are ";
+    cout << "the gains are ";
 
-    //for(int i = 0; i < nodePairs.size(); i++)
-    //{
-        //cout << (i + 1) << ": " << nodePairs[i].gain << " ";
-        //gains.push_back(nodePairs[i].gain);
-    //}
+    for(int i = 0; i < nodePairs.size(); i++)
+    {
+        cout << (i + 1) << ": " << nodePairs[i].gain << " ";
+        gains.push_back(nodePairs[i].gain);
+    }
     
-    //cout << endl;
-    //cout << "\n";
+    cout << endl;
+    cout << "\n";
 
-    //maxGainCheck = *max_element(gains.begin(), gains.end());
+    maxGainCheck = *max_element(gains.begin(), gains.end());
 
-    //cout << "the maximum gain is " << maxGainCheck << endl;
-    //cout << "\n";
+    cout << "the maximum gain is " << maxGainCheck << endl;
+    cout << "\n";
 
     return partitions;
-}
-
-// input:
-// functionality:
-// output:
-void updateD(vector<Node>& nodes, int p1Node, int p2Node)
-{
-    for (int i = 0; i < nodes[p1Node].adjacent.size(); i++)
-    {
-        
-    }
-
 }
 
 // input:
@@ -395,7 +390,7 @@ void updateD(vector<Node>& nodes, int p1Node, int p2Node)
 // reorder partitions in ascending order
 // remove all node pairs containing either node from the list of possible nodes to swap
 // output:
-vector<int> *swapNodes(vector<int> *partitions, vector<NodePair> &nodePairs, int p1Node, int p2Node)
+vector<int> *swapNodes(vector<int> *partitions, vector<NodePair> &nodePairs, vector<Node> &nodes, vector<Node> &usedNodes, int p1Node, int p2Node)
 {
     // replace node designator in partition 1 with node to be swapped from partition 2 and sort in ascending order
     replace(partitions[0].begin(), partitions[0].end(), p1Node, p2Node);
@@ -405,6 +400,7 @@ vector<int> *swapNodes(vector<int> *partitions, vector<NodePair> &nodePairs, int
     replace(partitions[1].begin(), partitions[1].end(), p2Node, p1Node);
     sort(partitions[1].begin(), partitions[1].end());
 
+    // delete all possible node pairs that contain the nodes which were last swapped
     for (int i = 0; i < nodePairs.size(); i++)
     {
         if ((p1Node == nodePairs[i].p1Node) || (p2Node == nodePairs[i].p2Node))
@@ -413,7 +409,115 @@ vector<int> *swapNodes(vector<int> *partitions, vector<NodePair> &nodePairs, int
         }
     }
 
+    // move nodes to used node vector for second kl iteration
+    Node tempNode1;
+    int usedNode1Index;
+    Node tempNode2;
+    int usedNode2Index;
+
+    for (int i = 1; i <= (nodes.size() - 1); i++)
+    {
+        if (nodes[i].node == p1Node)
+        {
+            tempNode1 = nodes[i];
+            usedNode1Index = i;
+        }
+        else if (nodes[i].node == p2Node)
+        {
+            tempNode2 = nodes[i];
+            usedNode2Index = i;
+        }
+    }
+    
+    usedNodes.push_back(tempNode1);
+    nodes.erase(nodes.begin() + usedNode1Index);
+
+    usedNodes.push_back(tempNode2);
+    nodes.erase(nodes.begin() + usedNode2Index);
+
     return partitions;
+}
+
+// input:
+// functionality:
+// output:
+void updateD(vector<Node> &nodes, int p1Node, int p2Node, vector<int> &p1, vector<int> &p2)
+{
+    vector<int> abAdjNodes;
+    int p1NodeIndex;
+    int p2NodeIndex;
+    int adjIndex;
+
+    for (int i = 1; i <= (nodes.size() - 1); i++)
+    {
+        if (nodes[i].node == p1Node)
+        {
+            p1NodeIndex = i;
+        }
+        else if (nodes[i].node == p2Node)
+        {
+            p2NodeIndex = i;
+        }
+    }
+
+    for (int i = 0; i < nodes[p1NodeIndex].adjacent.size(); i++)
+    {
+        nodes[nodes[p1NodeIndex].adjacent[i]].Cxa = 0;
+        nodes[nodes[p1NodeIndex].adjacent[i]].Cya = 0;
+
+        if (find(p1.begin(), p1.end(), nodes[p1NodeIndex].adjacent[i]) != p1.end())
+        {
+            nodes[nodes[p1NodeIndex].adjacent[i]].Cxa = 1;
+        }
+        else
+        {
+            nodes[nodes[p1NodeIndex].adjacent[i]].Cya = 1;
+        }
+
+        abAdjNodes.push_back(nodes[p1NodeIndex].adjacent[i]);
+    }
+
+    for (int i = 0; i < nodes[p2NodeIndex].adjacent.size(); i++)
+    {
+        nodes[nodes[p2NodeIndex].adjacent[i]].Cxb = 0;
+        nodes[nodes[p2NodeIndex].adjacent[i]].Cyb = 0;
+
+        if (find(p1.begin(), p1.end(), nodes[p2NodeIndex].adjacent[i]) != p1.end())
+        {
+            nodes[nodes[p2NodeIndex].adjacent[i]].Cxb = 1;
+        }
+        else
+        {
+            nodes[nodes[p2NodeIndex].adjacent[i]].Cyb = 1;
+        }
+
+        abAdjNodes.push_back(nodes[p2NodeIndex].adjacent[i]);
+    }
+
+    for (int i = 0; i < abAdjNodes.size(); i++)
+    {
+        for (int j = 1; j <= (nodes.size() - 1); j++)
+        {
+            if (nodes[j].node == abAdjNodes[i])
+            {
+                adjIndex = j;
+            }
+        }
+
+        if (find(p1.begin(), p1.end(), abAdjNodes[i]) != p1.end())
+        {
+            nodes[adjIndex].d = nodes[adjIndex].d + (2 * nodes[adjIndex].Cxa) - (2 * nodes[adjIndex].Cxb);
+        }
+        else
+        {
+            nodes[adjIndex].d = nodes[adjIndex].d + (2 * nodes[adjIndex].Cyb) - (2 * nodes[adjIndex].Cya);
+        }
+    }
+}
+
+void updateGain(vector<NodePair> &nodePairs, vector<Node> &nodes)
+{
+
 }
 
 /*
@@ -464,6 +568,7 @@ void printResults(int iteration, vector<int> &p1, vector<int> &p2, int cost, boo
 int main(int argc, char **argv)
 {
     vector<Node> nodes;
+    vector<Node> usedNodes;
     vector<NodePair> exchangeableNodes;
     vector<int> *partitions;
     ifstream verifiedFileName;
@@ -544,7 +649,7 @@ int main(int argc, char **argv)
 
     Gi = gi;
 
-    partitions = swapNodes(partitions, exchangeableNodes, p1NodeSwap, p2NodeSwap);
+    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
 
     printResults(iteration, partitions[0], partitions[1], gi);
 
