@@ -517,7 +517,14 @@ void updateD(vector<Node> &nodes, int p1Node, int p2Node, vector<int> &p1, vecto
 
 void updateGain(vector<NodePair> &nodePairs, vector<Node> &nodes)
 {
-
+    // add variable to designate partition in the node struct
+    // clear nodePairs vector
+    // rebuild nodePairs vector with new pairs/gains
+    // using 2 layer nested loop
+    // first loop checks if partition is equal to 1
+    // if it is, second loop is entered which iterates
+    // over all the nodes checking if they belong to
+    // partition 2. if they do, a new nodePair struct is created
 }
 
 /*
