@@ -308,17 +308,6 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
         costP2 += nodes[i].externalCost;
     }
 
-    // print for error checking
-    cout << "external cost of p1 is " << *initialCost << endl;
-    cout << "\n";
-
-    cout << "external cost of p2 is " << costP2 << endl;
-    cout << "\n";
-
-    edgeCount = externalEdgeCount + internalEdgeCount1 + internalEdgeCount2;
-    cout << "total number of edges counted is " << edgeCount << endl;
-    cout << "\n";
-
     //calculate initial gain for each node pair
     for (int i = 1; i <= partitionOneSize; i++)
     {
@@ -361,33 +350,6 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
             nodePairs.push_back(currentNodePair);
         }
     }
-
-    // parity check
-    cout << "there should be " << ((n/2) * (n/2)) << " node pairs." << endl;
-    cout << "\n";
-    cout << "there are " << nodePairs.size() << " node pairs." << endl;
-    cout << "\n";
-
-    // temp max gain code to finish checkpoint. move in to original loop which calculates gain
-
-    vector<int> gains;
-    int maxGainCheck;
-
-    cout << "the gains are ";
-
-    for(int i = 0; i < nodePairs.size(); i++)
-    {
-        cout << (i + 1) << ": " << nodePairs[i].gain << " ";
-        gains.push_back(nodePairs[i].gain);
-    }
-    
-    cout << endl;
-    cout << "\n";
-
-    maxGainCheck = *max_element(gains.begin(), gains.end());
-
-    cout << "the maximum gain is " << maxGainCheck << endl;
-    cout << "\n";
 
     return partitions;
 }
@@ -481,8 +443,6 @@ void updateD(vector<Node> &nodes, int p1Node, int p2Node, vector<int> &p1, vecto
             continue;
         }
 
-        cout << abAdjNodes[i] << endl;
-
         for (int j = 1; j <= (nodes.size() - 1); j++)
         {
             if (nodes[j].node == abAdjNodes[i])
@@ -515,11 +475,7 @@ void updateD(vector<Node> &nodes, int p1Node, int p2Node, vector<int> &p1, vecto
                 }
             }
 
-            cout << "old d: " << nodes[adjIndex].d << endl;
-            cout << "Cxa: " << nodes[adjIndex].Cxa << endl;
-            cout << "Cxb: " << nodes[adjIndex].Cxb << endl;
             nodes[adjIndex].d = nodes[adjIndex].d + (2 * nodes[adjIndex].Cxa) - (2 * nodes[adjIndex].Cxb);
-            cout << "new d: " << nodes[adjIndex].d << endl;
         }
 
         else if (nodes[adjIndex].currentPartition == 2)
@@ -545,11 +501,7 @@ void updateD(vector<Node> &nodes, int p1Node, int p2Node, vector<int> &p1, vecto
                 }
             }
 
-            cout << "old d: " << nodes[adjIndex].d << endl;
-            cout << "Cya: " << nodes[adjIndex].Cya << endl;
-            cout << "Cyb: " << nodes[adjIndex].Cyb << endl;
             nodes[adjIndex].d = nodes[adjIndex].d + (2 * nodes[adjIndex].Cyb) - (2 * nodes[adjIndex].Cya);
-            cout << "new d: " << nodes[adjIndex].d << endl;
         }
     }
 }
@@ -608,42 +560,7 @@ void updateGain(vector<NodePair> &nodePairs, vector<Node> &nodes, int *maxGain, 
             }
         }
     }
-
-    vector<int> gains;
-    int maxGainCheck;
-
-    cout << "the gains are ";
-
-    for (int i = 0; i < nodePairs.size(); i++)
-    {
-        cout << (i + 1) << ": " << nodePairs[i].gain << " ";
-        gains.push_back(nodePairs[i].gain);
-    }
-
-    cout << endl;
-    cout << "\n";
-
-    maxGainCheck = *max_element(gains.begin(), gains.end());
-
-    cout << "the maximum gain is " << maxGainCheck << endl;
-    cout << "\n";
-
-    // parity check
-    cout << "there should be " << (((nodes.size() - 1) / 2) * ((nodes.size() - 1) / 2)) << " node pairs." << endl;
-    cout << "\n";
-    cout << "there are " << nodePairs.size() << " node pairs." << endl;
-    cout << "\n";
 }
-
-/*
-// input:
-// functionality:
-// output:
-vector<Node> KLalgorithm()
-{
-
-}
-*/
 
 // input:
 // print out iteration summary in the following format:
@@ -711,6 +628,7 @@ int main(int argc, char **argv)
     int cost;
     // nodes + dummy (1f there is one)
     int actualNodes;
+    vector<vector<int>> partitionHistory;
 
     ifstream fileName(argv[1]);
 
@@ -770,39 +688,121 @@ int main(int argc, char **argv)
 
     printResults(iteration, partitions[0], partitions[1], initialCost, 1);
 
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
     updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
 
     partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
 
-    printResults(iteration, partitions[0], partitions[1], cost);
+    vector<int> tempVec;
+    for (int i = 0; i < partitions[0].size(); i++)
+    {
+        tempVec.push_back(partitions[0][i]);
+    }
+    partitionHistory.push_back(tempVec);
+    tempVec.clear();
 
-for (int i = 0; i < ((actualNodes/2) - 1); i++)
-{
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    cost = initialCost - Gi;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
+    for (int i = 0; i < partitions[1].size(); i++)
+    {
+        tempVec.push_back(partitions[1][i]);
+    }
+    partitionHistory.push_back(tempVec);
+    tempVec.clear();
 
     printResults(iteration, partitions[0], partitions[1], cost);
-}
 
-    cout << Gi << endl;
+    for (int i = 0; i < ((actualNodes / 2) - 1); i++)
+    {
+        iteration++;
+
+        updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
+        gi.push_back(maxGain);
+        Gi += maxGain;
+        cost = initialCost - Gi;
+        usedNodeDesignators.push_back(p1NodeSwap);
+        usedNodeDesignators.push_back(p2NodeSwap);
+
+        updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
+
+        partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
+
+        for (int i = 0; i < partitions[0].size(); i++)
+        {
+            tempVec.push_back(partitions[0][i]);
+        }
+        partitionHistory.push_back(tempVec);
+        tempVec.clear();
+
+        for (int i = 0; i < partitions[1].size(); i++)
+        {
+            tempVec.push_back(partitions[1][i]);
+        }
+        partitionHistory.push_back(tempVec);
+        tempVec.clear();
+
+        printResults(iteration, partitions[0], partitions[1], cost);
+    }
+
+    int maxK = 0;
+    int gRunningSum = 0;
+    int gMaxSum = 0;
+    for (int i = 0; i < gi.size(); i++)
+    {
+        gRunningSum += gi[i];
+
+        if (gRunningSum > gMaxSum)
+        {
+            gMaxSum = gRunningSum;
+            maxK = i;
+        }
+    }
+/*
+    cout << "\n" << endl;
+    cout << "partition history:" << endl;
+    for (int i = 0; i < partitionHistory.size(); i++)
+    {
+        cout << i << ": ";
+        for (int j = 0; j < partitionHistory[i].size(); j++)
+        {
+            cout << partitionHistory[i][j] << " ";
+        }
+        cout << endl;
+    } */
+
+    maxK = maxK * 2;
+
+    if ((n % 2) != 0)
+    {
+        int p1MaxElement = *max_element(partitionHistory[maxK].begin(), partitionHistory[maxK].end());
+
+        int p2MaxElement = *max_element(partitionHistory[maxK + 1].begin(), partitionHistory[maxK + 1].end());
+
+        if (p1MaxElement > p2MaxElement)
+        {
+            vector<int>::iterator it = find(partitionHistory[maxK].begin(), partitionHistory[maxK].end(), p1MaxElement);
+            partitionHistory[maxK].erase(partitionHistory[maxK].begin() + (it - partitionHistory[maxK].begin()));
+        }
+        else
+        {
+            vector<int>::iterator it = find(partitionHistory[maxK + 1].begin(), partitionHistory[maxK + 1].end(), p2MaxElement);
+            partitionHistory[maxK + 1].erase(partitionHistory[maxK + 1].begin() + (it - partitionHistory[maxK + 1].begin()));
+        }
+    }
+
+    cout << "the maximum gain is: " << gMaxSum << endl;
+    cout << endl;
+    cout << "final partition" << endl;
+    cout << "partition one: ";
+    for (int i = 0; i < partitionHistory[maxK].size(); i++)
+    {
+        cout << partitionHistory[maxK][i] << " ";
+    }
+    cout << endl;
+    cout << "partition two: ";
+    for (int i = 0; i < partitionHistory[maxK + 1].size(); i++)
+    {
+        cout << partitionHistory[maxK + 1][i] << " ";
+    }
+    cout << endl;
+    cout << "cost: " << (initialCost - gMaxSum) << endl;
 
     return 0;
 }
