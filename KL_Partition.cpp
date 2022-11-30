@@ -708,6 +708,9 @@ int main(int argc, char **argv)
     vector<int> gi;
     int Gk;
     int k;
+    int cost;
+    // nodes + dummy (1f there is one)
+    int actualNodes;
 
     ifstream fileName(argv[1]);
 
@@ -749,9 +752,19 @@ int main(int argc, char **argv)
         nodes = readFile(verifiedFileName, &n, &e, &totalNumNodesRead, &totalNumAdjNodesRead);
     }
 
+    if ((n % 2) != 0 )
+    {
+        actualNodes = n + 1;
+    }
+    else
+    {
+        actualNodes = n;
+    }
+
     partitions = initialPartition(nodes, exchangeableNodes, &initialCost, &maxGain, &p1NodeSwap, &p2NodeSwap, n);
     gi.push_back(maxGain);
     Gi = maxGain;
+    cost = initialCost - Gi;
     usedNodeDesignators.push_back(p1NodeSwap);
     usedNodeDesignators.push_back(p2NodeSwap);
 
@@ -760,474 +773,34 @@ int main(int argc, char **argv)
     cout << "the maximum gain is " << maxGain << endl;
     cout << "\n";
 
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
     updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
     cout << "\n";
 
     partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
 
-    printResults(iteration, partitions[0], partitions[1], maxGain);
+    printResults(iteration, partitions[0], partitions[1], cost);
 
+for (int i = 0; i < ((actualNodes/2) - 1); i++)
+{
     iteration++;
 
     updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
     gi.push_back(maxGain);
     Gi += maxGain;
+    cost = initialCost - Gi;
     usedNodeDesignators.push_back(p1NodeSwap);
     usedNodeDesignators.push_back(p2NodeSwap);
 
     cout << "the maximum gain is " << maxGain << endl;
     cout << "\n";
 
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
     updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
     cout << "\n";
 
     partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
 
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
-
-    iteration++;
-
-    updateGain(exchangeableNodes, nodes, &maxGain, &p1NodeSwap, &p2NodeSwap, initialCost);
-    gi.push_back(maxGain);
-    Gi += maxGain;
-    usedNodeDesignators.push_back(p1NodeSwap);
-    usedNodeDesignators.push_back(p2NodeSwap);
-
-    cout << "the maximum gain is " << maxGain << endl;
-    cout << "\n";
-
-    cout << "the partition one node to be swapped is " << p1NodeSwap << endl;
-    cout << "\n";
-
-    cout << "the partition two node to be swapped is " << p2NodeSwap << endl;
-    cout << "\n";
-
-    updateD(nodes, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
-    cout << "\n";
-
-    partitions = swapNodes(partitions, exchangeableNodes, nodes, usedNodes, p1NodeSwap, p2NodeSwap);
-
-    printResults(iteration, partitions[0], partitions[1], maxGain);
+    printResults(iteration, partitions[0], partitions[1], cost);
+}
 
     cout << Gi << endl;
 
