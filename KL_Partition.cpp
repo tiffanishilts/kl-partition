@@ -171,35 +171,28 @@ bool verifyData(vector<Node>& nodes, int n, int e, int totalNumNodesRead, int to
 // calculate internal cost, external cost, and d for each node
 // calculate cost of initial partition
 // output: array of two vectors containing the node designators of the nodes in the initial p1 and p2 partitions
-vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, int *initialCost, int *maxGain, int *p1NodeSwap, int *p2NodeSwap, int n)
+vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, int *initialCost, int *maxGain, int *p1NodeSwap, int *p2NodeSwap, int *totalNumNodes, int *partitionOneSize, bool isFirstIteration = 0)
 {
     // array of vectors to contain data about which nodes are in each partition
     static vector<int> partitions[2];
-    // total number of nodes + dummy node (if there is one)
-    int totalNumNodes = 0;
-    // n/2
-    int partitionOneSize = 0;
-    // total number of edges counted while calculating cost -- for parity
-    int edgeCount = 0;
-    // p1 internal edge count
-    int internalEdgeCount1 = 0;
-    // p2 internal edge count
-    int internalEdgeCount2 = 0;
-    // external edge count (p1 and p2 should be equal)
-    int externalEdgeCount = 0;
+
+    if (isFirstIteration)
+    {
+    *totalNumNodes = 0;
+    *partitionOneSize = 0;
 
     // set total number of nodes (including dummy) and n/2
-    totalNumNodes = nodes.size() - 1;
-    partitionOneSize = totalNumNodes/2;
+    *totalNumNodes = nodes.size() - 1;
+    *partitionOneSize = *totalNumNodes/2;
 
     // create partitions
-    for (int i = 1; i <= partitionOneSize; i++)
+    for (int i = 1; i <= *partitionOneSize; i++)
     {
         partitions[0].push_back(nodes[i].node);
         nodes[i].currentPartition = 1;
     }
 
-    for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
+    for (int i = *partitionOneSize + 1; i <= *totalNumNodes; i++)
     {
         partitions[1].push_back(nodes[i].node);
         nodes[i].currentPartition = 2;
@@ -208,54 +201,48 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     // sort partitions
     sort(partitions[0].begin(), partitions[0].end());
     sort(partitions[1].begin(), partitions[1].end());
+    }
 
     // calculate external cost for nodes in partition 1
-    for (int i = 1; i <= partitionOneSize; i++)
+    for (int i = 1; i <= *partitionOneSize; i++)
     {
         nodes[i].externalCost = 0;
 
-        for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
+        for (int j = *partitionOneSize + 1; j <= *totalNumNodes; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
             {
                 if (nodes[i].node == nodes[j].adjacent[k])
                 {
                     nodes[i].externalCost += 1;
-
-                    externalEdgeCount++;
                 }
             }
         }
     }
 
     // calculate internal cost for nodes in partition 1
-    for (int i = 1; i <= partitionOneSize; i++)
+    for (int i = 1; i <= *partitionOneSize; i++)
     {
         nodes[i].internalCost = 0;
 
-        for (int j = 1; j <= partitionOneSize; j++)
+        for (int j = 1; j <= *partitionOneSize; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
             {
                 if ((nodes[i].node == nodes[j].adjacent[k]) && (j != i))
                 {
                     nodes[i].internalCost += 1;
-
-                    internalEdgeCount1++;
                 }
             }
         }
     }
 
-    // one edge per two nodes counted
-    internalEdgeCount1 = internalEdgeCount1 / 2;
-
     // calculate external cost for nodes in partition 2
-    for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
+    for (int i = *partitionOneSize + 1; i <= *totalNumNodes; i++)
     {
         nodes[i].externalCost = 0;
 
-        for (int j = 1; j <= partitionOneSize; j++)
+        for (int j = 1; j <= *partitionOneSize; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
             {   
@@ -268,50 +255,46 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
     }
 
     // calculate internal cost for nodes in partition 2
-    for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
+    for (int i = *partitionOneSize + 1; i <= *totalNumNodes; i++)
     {
         nodes[i].internalCost = 0;
 
-        for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
+        for (int j = *partitionOneSize + 1; j <= *totalNumNodes; j++)
         {
             for (int k = 0; k < nodes[j].adjacent.size(); k++)
             {
                 if ((nodes[i].node == nodes[j].adjacent[k]) && (j != i))
                 {
                     nodes[i].internalCost += 1;
-
-                    internalEdgeCount2++;
                 }
             }
         }
     }
 
-    // one edge per two nodes counted
-    internalEdgeCount2 = internalEdgeCount2 / 2;
-
     // update d value for all nodes
-    for (int i = 1; i <= totalNumNodes; i++)
+    for (int i = 1; i <= *totalNumNodes; i++)
     {
         nodes[i].d = nodes[i].externalCost - nodes[i].internalCost;
     }
 
     // calculate cost of first partition
-    for(int i = 1; i <= partitionOneSize; i++)
+    *initialCost = 0;
+    for(int i = 1; i <= *partitionOneSize; i++)
     {
         *initialCost += nodes[i].externalCost;
     }
 
     // calculate cost of second partition for parity
     int costP2 = 0;
-    for (int i = partitionOneSize + 1; i <= totalNumNodes; i++)
+    for (int i = *partitionOneSize + 1; i <= *totalNumNodes; i++)
     {
         costP2 += nodes[i].externalCost;
     }
 
     //calculate initial gain for each node pair
-    for (int i = 1; i <= partitionOneSize; i++)
+    for (int i = 1; i <= *partitionOneSize; i++)
     {
-        for (int j = partitionOneSize + 1; j <= totalNumNodes; j++)
+        for (int j = *partitionOneSize + 1; j <= *totalNumNodes; j++)
         {
             NodePair currentNodePair;
 
@@ -330,7 +313,7 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
             currentNodePair.gain = nodes[i].d + nodes[j].d - (2 * currentNodePair.Cab);
 
             // initialize max gain
-            if ((i == 1) && (j == (partitionOneSize + 1)))
+            if ((i == 1) && (j == (*partitionOneSize + 1)))
             {
                 *maxGain = currentNodePair.gain;
                 *p1NodeSwap = nodes[i].node;
@@ -350,6 +333,25 @@ vector<int>* initialPartition(vector<Node>& nodes, vector<NodePair>& nodePairs, 
             nodePairs.push_back(currentNodePair);
         }
     }
+
+    cout << "there are " << nodePairs.size() << " node pairs." << endl;
+    cout << "\n";
+
+    // temp max gain code to finish checkpoint. move in to original loop which calculates gain
+
+    vector<int> gains;
+    int maxGainCheck;
+
+    cout << "the gains are ";
+
+    for (int i = 0; i < nodePairs.size(); i++)
+    {
+        cout << (i + 1) << ": " << nodePairs[i].gain << " ";
+        gains.push_back(nodePairs[i].gain);
+    }
+
+    cout << endl;
+    cout << "\n";
 
     return partitions;
 }
@@ -627,8 +629,12 @@ int main(int argc, char **argv)
     int k;
     int cost;
     // nodes + dummy (1f there is one)
-    int actualNodes;
-    vector<vector<int>> partitionHistory;
+    //int actualNodes;
+    vector<vector<int>> partitionHistory1;
+    // total number of nodes + dummy node (if there is one)
+    int totalNumNodes;
+    //  n/2
+    int partitionOneSize;
 
     ifstream fileName(argv[1]);
 
@@ -670,16 +676,7 @@ int main(int argc, char **argv)
         nodes = readFile(verifiedFileName, &n, &e, &totalNumNodesRead, &totalNumAdjNodesRead);
     }
 
-    if ((n % 2) != 0 )
-    {
-        actualNodes = n + 1;
-    }
-    else
-    {
-        actualNodes = n;
-    }
-
-    partitions = initialPartition(nodes, exchangeableNodes, &initialCost, &maxGain, &p1NodeSwap, &p2NodeSwap, n);
+    partitions = initialPartition(nodes, exchangeableNodes, &initialCost, &maxGain, &p1NodeSwap, &p2NodeSwap, &totalNumNodes, &partitionOneSize, 1);
     gi.push_back(maxGain);
     Gi = maxGain;
     cost = initialCost - Gi;
@@ -697,19 +694,19 @@ int main(int argc, char **argv)
     {
         tempVec.push_back(partitions[0][i]);
     }
-    partitionHistory.push_back(tempVec);
+    partitionHistory1.push_back(tempVec);
     tempVec.clear();
 
     for (int i = 0; i < partitions[1].size(); i++)
     {
         tempVec.push_back(partitions[1][i]);
     }
-    partitionHistory.push_back(tempVec);
+    partitionHistory1.push_back(tempVec);
     tempVec.clear();
 
     printResults(iteration, partitions[0], partitions[1], cost);
 
-    for (int i = 0; i < ((actualNodes / 2) - 1); i++)
+    for (int i = 0; i < ((totalNumNodes / 2) - 1); i++)
     {
         iteration++;
 
@@ -728,14 +725,14 @@ int main(int argc, char **argv)
         {
             tempVec.push_back(partitions[0][i]);
         }
-        partitionHistory.push_back(tempVec);
+        partitionHistory1.push_back(tempVec);
         tempVec.clear();
 
         for (int i = 0; i < partitions[1].size(); i++)
         {
             tempVec.push_back(partitions[1][i]);
         }
-        partitionHistory.push_back(tempVec);
+        partitionHistory1.push_back(tempVec);
         tempVec.clear();
 
         printResults(iteration, partitions[0], partitions[1], cost);
@@ -754,55 +751,115 @@ int main(int argc, char **argv)
             maxK = i;
         }
     }
-/*
-    cout << "\n" << endl;
-    cout << "partition history:" << endl;
-    for (int i = 0; i < partitionHistory.size(); i++)
-    {
-        cout << i << ": ";
-        for (int j = 0; j < partitionHistory[i].size(); j++)
-        {
-            cout << partitionHistory[i][j] << " ";
-        }
-        cout << endl;
-    } */
 
     maxK = maxK * 2;
-
-    if ((n % 2) != 0)
-    {
-        int p1MaxElement = *max_element(partitionHistory[maxK].begin(), partitionHistory[maxK].end());
-
-        int p2MaxElement = *max_element(partitionHistory[maxK + 1].begin(), partitionHistory[maxK + 1].end());
-
-        if (p1MaxElement > p2MaxElement)
-        {
-            vector<int>::iterator it = find(partitionHistory[maxK].begin(), partitionHistory[maxK].end(), p1MaxElement);
-            partitionHistory[maxK].erase(partitionHistory[maxK].begin() + (it - partitionHistory[maxK].begin()));
-        }
-        else
-        {
-            vector<int>::iterator it = find(partitionHistory[maxK + 1].begin(), partitionHistory[maxK + 1].end(), p2MaxElement);
-            partitionHistory[maxK + 1].erase(partitionHistory[maxK + 1].begin() + (it - partitionHistory[maxK + 1].begin()));
-        }
-    }
 
     cout << "the maximum gain is: " << gMaxSum << endl;
     cout << endl;
     cout << "final partition" << endl;
     cout << "partition one: ";
-    for (int i = 0; i < partitionHistory[maxK].size(); i++)
+    for (int i = 0; i < partitionHistory1[maxK].size(); i++)
     {
-        cout << partitionHistory[maxK][i] << " ";
+        cout << partitionHistory1[maxK][i] << " ";
     }
     cout << endl;
     cout << "partition two: ";
-    for (int i = 0; i < partitionHistory[maxK + 1].size(); i++)
+    for (int i = 0; i < partitionHistory1[maxK + 1].size(); i++)
     {
-        cout << partitionHistory[maxK + 1][i] << " ";
+        cout << partitionHistory1[maxK + 1][i] << " ";
     }
     cout << endl;
     cout << "cost: " << (initialCost - gMaxSum) << endl;
 
-    return 0;
+    // START NEXT KL ITERATION
+    
+    cout << endl;
+
+    partitions[0].clear();
+    partitions[1].clear();
+
+    partitions[0] = partitionHistory1[maxK];
+    partitions[1] = partitionHistory1[maxK + 1];
+
+    for (int i = 0; i < usedNodes.size(); i++)
+    {
+        if (find(partitions[0].begin(), partitions[0].end(), usedNodes[i].node) != partitions[0].end())
+        {
+            usedNodes[i].currentPartition = 1;
+        }
+        else
+        {
+            usedNodes[i].currentPartition = 2;
+        }
+    }
+
+        bool noImprovement = 1;
+
+        //while (!noImprovement)
+        //{
+            usedNodeDesignators.clear();
+            exchangeableNodes.clear();
+            initialCost = 0;
+            maxGain = 0;
+            vector<Node> nodes2;
+            vector<Node> lastIterationNodes;
+            vector<int> gi2;
+            vector<vector<int>> partitionHistory2;
+            int Gi2;
+            iteration = 1;
+
+            nodes2.push_back(nodes[0]);
+
+            for (int i = 0; i < usedNodes.size(); i++)
+            {
+                if (usedNodes[i].currentPartition == 1)
+                {
+                    nodes2.push_back(usedNodes[i]);
+                }
+            }
+            
+            for (int i = 0; i < usedNodes.size(); i++)
+            {
+                if (usedNodes[i].currentPartition == 2)
+                {
+                    nodes2.push_back(usedNodes[i]);
+                }
+            }
+
+            usedNodes.clear();
+            lastIterationNodes = nodes2;
+
+            initialPartition(nodes2, exchangeableNodes, &initialCost, &maxGain, &p1NodeSwap, &p2NodeSwap, &totalNumNodes, &partitionOneSize);
+            gi2.push_back(maxGain);
+            Gi2 = maxGain;
+            cost = initialCost - Gi;
+            usedNodeDesignators.push_back(p1NodeSwap);
+            usedNodeDesignators.push_back(p2NodeSwap);
+
+            printResults(iteration, partitions[0], partitions[1], initialCost, 1);
+
+            updateD(nodes2, p1NodeSwap, p2NodeSwap, partitions[0], partitions[1], usedNodeDesignators);
+
+            partitions = swapNodes(partitions, exchangeableNodes, nodes2, usedNodes, p1NodeSwap, p2NodeSwap);
+
+            //vector<int> tempVec;
+            for (int i = 0; i < partitions[0].size(); i++)
+            {
+                tempVec.push_back(partitions[0][i]);
+            }
+            partitionHistory2.push_back(tempVec);
+            tempVec.clear();
+
+            for (int i = 0; i < partitions[1].size(); i++)
+            {
+                tempVec.push_back(partitions[1][i]);
+            }
+            partitionHistory2.push_back(tempVec);
+            tempVec.clear();
+
+            printResults(iteration, partitions[0], partitions[1], cost);
+
+            //}
+
+            return 0;
 }
